@@ -1,0 +1,79 @@
+[build-system]
+# Specifies the tools required to build the package from source
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# --- [tool.poetry] ---
+# Metadata section for the Poetry package manager
+[tool.poetry]
+name = "python-toml-dummy-project"
+version = "0.1.0"
+description = "A dummy pyproject.toml template for modern Python projects."
+authors = ["Your Name <youremail@example.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/yourusername/python-toml-dummy-project"
+repository = "https://github.com/yourusername/python-toml-dummy-project"
+keywords = ["python", "template", "poetry", "toml"]
+
+# Configuration for where to find the source code
+packages = [
+    { include = "src" }
+]
+
+# Defines production dependencies
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+pydantic = "^2.4.2"
+click = "^8.1.7"
+
+# Defines development/testing dependencies
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.2"
+black = "^23.9.1"
+isort = "^5.12.0"
+mypy = "^1.6.1"
+ruff = "^0.0.291"
+
+
+# --- [tool.black] ---
+# Configuration for the Black code formatter
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | build
+  | dist
+)/
+'''
+
+# --- [tool.pytest.ini_options] ---
+# Configuration for the Pytest testing framework
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "--strict-markers --cov=src"
+testpaths = [
+    "tests",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+# --- [tool.mypy] ---
+# Configuration for the MyPy static type checker
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true

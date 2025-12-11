@@ -1,0 +1,33 @@
+# --- Core Dependencies ---
+# Pin a dependency to a specific version for stability (best practice)
+requests==2.31.0
+
+# Use a minimum required version (good for library development)
+pydantic>=2.4.2
+
+# Allow any version up to, but not including, 3.0 (Tilde/Compatible Release)
+# This is less common in requirements.txt but valid
+click~=8.1.0
+
+# Specify a dependency from a local directory or VCS (e.g., Git)
+# git+https://github.com/my-fork/my-library@v1.2.3#egg=my-library
+
+# --- Environment & Tools ---
+# If you need to install specific Python versions (less common here)
+# python-dateutil
+
+# Define a dependency needed only for development/testing
+# This often requires separate files like requirements-dev.txt
+# But can be listed here if the environment is a monolithic "dev" one.
+pytest==7.4.2
+black==23.9.1
+
+# --- Optional Dependencies (Good for illustrating file structure) ---
+# If you have extras, you can specify them like this:
+# starlette[full]==0.32.0
+
+# --- Comments and Notes ---
+# Comments are ignored during installation.
+# You can also use a hash for the environment marker
+# for conditional installation, though usually done in setup.py/pyproject.toml:
+# cryptography==41.0.4; sys_platform == 'darwin'

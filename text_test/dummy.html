@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing Page - Dummy Content</title>
+    <meta name="description" content="A simple dummy HTML page designed for frontend testing purposes.">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Basic inline styles for immediate visual feedback */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        #js-output {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="main-title">Testing Page Header</h1>
+            <p>This page contains dummy content for **UI testing** and **DOM manipulation**.</p>
+        </header>
+
+        <hr>
+
+        <h2>Forms and Inputs</h2>
+        <form id="test-form">
+            <label for="text-input">Text Input:</label>
+            <input type="text" id="text-input" name="text-input" value="Default Value" required
+                aria-label="Text Input Example">
+
+            <br><br>
+
+            <label for="dropdown-select">Select Option:</label>
+            <select id="dropdown-select" name="dropdown-select">
+                <option value="option1">Option 1</option>
+                <option value="option2" selected>Option 2 (Selected)</option>
+                <option value="option3">Option 3</option>
+            </select>
+
+            <br><br>
+
+            <input type="checkbox" id="checkbox-input" name="checkbox-input" checked>
+            <label for="checkbox-input">Checked Checkbox</label>
+
+            <br><br>
+
+            <button type="submit" id="submit-button" class="btn btn-primary">Submit Form</button>
+            <button type="button" id="click-me-button" class="btn btn-secondary">Click Me (JS Test)</button>
+        </form>
+
+        <hr>
+
+        <h2>Data List</h2>
+        <ul id="data-list">
+            <li class="list-item" data-id="1">Item Alpha</li>
+            <li class="list-item" data-id="2">Item Beta <span class="highlight">Important</span></li>
+            <li class="list-item" data-id="3">Item Gamma</li>
+            <li class="list-item hidden" data-id="4">Item Delta (Hidden)</li>
+        </ul>
+
+        <hr>
+
+        <h2>JavaScript Interaction</h2>
+        <p>Current time will be displayed here:</p>
+        <div id="js-output">Waiting for button click...</div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clickButton = document.getElementById('click-me-button');
+            const outputDiv = document.getElementById('js-output');
+            const mainTitle = document.getElementById('main-title');
+
+            // Function to handle the button click event
+            clickButton.addEventListener('click', () => {
+                const now = new Date();
+                outputDiv.innerHTML = `Button clicked successfully! <br> Time: <strong>${now.toLocaleTimeString()}</strong>`;
+                mainTitle.textContent = "Testing Page - JS Updated!";
+                console.log("Button clicked and DOM updated.");
+            });
+
+            // Prevent default form submission for testing
+            const testForm = document.getElementById('test-form');
+            testForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert("Form submission prevented for testing.");
+                console.log("Form submitted (and prevented).");
+            });
+
+            // Log a successful load
+            console.log("Dummy HTML page loaded and JS ready.");
+        });
+    </script>
+</body>
+
+</html>

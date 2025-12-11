@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 11 Web</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Windows 11 Wallpaper */
+        body {
+            background-image: url('https://blogs.windows.com/wp-content/uploads/sites/2/2021/10/Windows-11-Bloom-Screensaver-Dark-scaled.jpg');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            /* Prevent text selection like an OS */
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(243, 244, 246, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .glass-dark {
+            background: rgba(32, 32, 32, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Taskbar Icon Animation */
+        .taskbar-icon {
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .taskbar-icon:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .taskbar-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Start Menu Animation */
+        #start-menu {
+            transition: transform 0.25s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s ease;
+            transform-origin: bottom center;
+        }
+
+        .start-hidden {
+            transform: translateY(100%) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .start-visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Desktop Icon Interaction */
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-icon.selected {
+            background-color: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Window Styling */
+        .window {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .window.maximizing {
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen relative overflow-hidden text-gray-800">
+
+    <!-- Desktop Area -->
+    <main id="desktop"
+        class="w-full h-full p-2 grid grid-flow-col grid-rows-6 gap-2 content-start items-start justify-start z-0"
+        onclick="deselectAll()">
+        <!-- Desktop Icons -->
+        <div class="desktop-icon w-24 h-24 flex flex-col items-center justify-center rounded hover:cursor-default transition-colors border border-transparent"
+            onclick="selectIcon(event, this)" ondblclick="openWindow('explorer')">
+            <img src="https://img.icons8.com/color/96/000000/my-computer--v1.png" alt="This PC"
+                class="w-12 h-12 mb-1 drop-shadow-md">
+            <span class="text-white text-xs drop-shadow-md text-center">This PC</span>
+        </div>
+
+        <div class="desktop-icon w-24 h-24 flex flex-col items-center justify-center rounded hover:cursor-default transition-colors border border-transparent"
+            onclick="selectIcon(event, this)">
+            <img src="https://img.icons8.com/color/96/000000/full-trash.png" alt="Recycle Bin"
+                class="w-12 h-12 mb-1 drop-shadow-md">
+            <span class="text-white text-xs drop-shadow-md text-center">Recycle Bin</span>
+        </div>
+
+        <div class="desktop-icon w-24 h-24 flex flex-col items-center justify-center rounded hover:cursor-default transition-colors border border-transparent"
+            onclick="selectIcon(event, this)" ondblclick="openWindow('edge')">
+            <img src="https://img.icons8.com/color/96/000000/ms-edge-new.png" alt="Edge"
+                class="w-12 h-12 mb-1 drop-shadow-md">
+            <span class="text-white text-xs drop-shadow-md text-center">Microsoft Edge</span>
+        </div>
+    </main>
+
+    <!-- Windows Container -->
+    <div id="windows-container" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
+        <!-- Windows will be injected here via JS -->
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu"
+        class="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-[640px] h-[700px] glass rounded-xl shadow-2xl flex flex-col start-hidden z-50 overflow-hidden">
+        <!-- Search Bar -->
+        <div class="p-8 pb-4">
+            <div
+                class="bg-white/70 border border-gray-300 rounded-md flex items-center px-4 py-2 shadow-sm focus-within:ring-2 ring-blue-400 transition-all">
+                <i class="fas fa-search text-gray-500 mr-3"></i>
+                <input type="text" placeholder="Type here to search"
+                    class="bg-transparent border-none outline-none w-full text-sm placeholder-gray-500 text-gray-700">
+            </div>
+        </div>
+
+        <!-- Pinned Section -->
+        <div class="px-8 flex-1 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-bold text-gray-700 ml-1">Pinned</h3>
+                <button
+                    class="text-xs bg-white/50 px-2 py-1 rounded shadow-sm hover:bg-white/80 transition text-gray-600">All
+                    apps <i class="fas fa-chevron-right ml-1"></i></button>
+            </div>
+
+            <div class="grid grid-cols-6 gap-y-6 gap-x-2">
+                <!-- App Icons -->
+                <div class="flex flex-col items-center group cursor-pointer" onclick="openWindow('edge')">
+                    <img src="https://img.icons8.com/color/48/000000/ms-edge-new.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Edge</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer" onclick="openWindow('word')">
+                    <img src="https://img.icons8.com/color/48/000000/word.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Word</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/excel.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Excel</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/powerpoint.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">PowerPoint</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/fluency/48/000000/microsoft-store.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Store</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/microsoft-photos.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Photos</span>
+                </div>
+                <!-- Row 2 -->
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/calculator.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Calculator</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/spotify--v1.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Spotify</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/netflix.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Netflix</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/fluency/48/000000/settings.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Settings</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/fluency/48/000000/mail.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Mail</span>
+                </div>
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <img src="https://img.icons8.com/color/48/000000/solitaire.png"
+                        class="w-8 h-8 mb-2 group-hover:scale-110 transition-transform">
+                    <span class="text-[10px] text-gray-700 font-medium">Solitaire</span>
+                </div>
+            </div>
+
+            <!-- Recommended -->
+            <div class="mt-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-bold text-gray-700 ml-1">Recommended</h3>
+                    <button
+                        class="text-xs bg-white/50 px-2 py-1 rounded shadow-sm hover:bg-white/80 transition text-gray-600">More
+                        <i class="fas fa-chevron-right ml-1"></i></button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center p-2 hover:bg-white/50 rounded cursor-pointer transition">
+                        <img src="https://img.icons8.com/color/48/000000/word.png" class="w-8 h-8 mr-3">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-700">Resume.docx</span>
+                            <span class="text-[10px] text-gray-500">2h ago</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-white/50 rounded cursor-pointer transition">
+                        <img src="https://img.icons8.com/color/48/000000/pdf-2.png" class="w-8 h-8 mr-3">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-700">Project_Specs.pdf</span>
+                            <span class="text-[10px] text-gray-500">Yesterday at 4:20 PM</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-white/50 rounded cursor-pointer transition">
+                        <img src="https://img.icons8.com/color/48/000000/adobe-photoshop--v1.png" class="w-8 h-8 mr-3">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-700">Design_Mockup.psd</span>
+                            <span class="text-[10px] text-gray-500">Last week</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-white/50 rounded cursor-pointer transition">
+                        <img src="https://img.icons8.com/color/48/000000/source-code.png" class="w-8 h-8 mr-3">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-700">main.js</span>
+                            <span class="text-[10px] text-gray-500">Last week</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Footer -->
+        <div
+            class="h-16 glass-dark bg-opacity-10 border-t border-gray-300/50 flex items-center justify-between px-8 py-2">
+            <div class="flex items-center hover:bg-white/40 p-2 rounded cursor-pointer transition">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold mr-3">
+                    U</div>
+                <span class="text-xs font-semibold text-gray-700">User</span>
+            </div>
+            <div class="hover:bg-white/40 p-2 rounded cursor-pointer transition text-gray-600">
+                <i class="fas fa-power-off"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <footer class="fixed bottom-0 w-full h-12 glass z-40 flex justify-between items-center px-2">
+        <!-- Weather/Widgets (Left) -->
+        <div
+            class="hidden md:flex items-center h-full w-1/4 pl-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
+            <div class="flex items-center hover:bg-white/40 px-2 py-1 rounded cursor-pointer transition">
+                <i class="fas fa-cloud-sun text-yellow-500 mr-2"></i>
+                <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-gray-700">72°F</span>
+                    <span class="text-[10px] text-gray-500">Sunny</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Apps -->
+        <div class="flex items-center justify-center space-x-1 h-full flex-1">
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer"
+                onclick="toggleStartMenu()" title="Start">
+                <img src="https://img.icons8.com/color/48/000000/windows-11.png" class="w-6 h-6">
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer" title="Search">
+                <img src="https://img.icons8.com/fluency/48/000000/search-in-list.png" class="w-6 h-6">
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer hidden sm:flex"
+                title="Task View">
+                <img src="https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/000000/external-squares-basic-ui-elements-flatart-icons-flat-flatarticons.png"
+                    class="w-5 h-5 opacity-70">
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer hidden sm:flex"
+                title="Widgets">
+                <img src="https://img.icons8.com/fluency/48/000000/widget.png" class="w-6 h-6">
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer hidden sm:flex"
+                title="Chat">
+                <img src="https://img.icons8.com/fluency/48/000000/chat-bubble.png" class="w-6 h-6">
+            </div>
+
+            <!-- Separator -->
+            <div class="w-[1px] h-6 bg-gray-400/30 mx-1"></div>
+
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer relative"
+                onclick="openWindow('explorer')" title="File Explorer">
+                <img src="https://img.icons8.com/color/48/000000/folder-invoices--v1.png" class="w-6 h-6">
+                <div id="dot-explorer" class="absolute bottom-1 w-1 h-1 bg-gray-500 rounded-full hidden"></div>
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer relative"
+                onclick="openWindow('edge')" title="Microsoft Edge">
+                <img src="https://img.icons8.com/color/48/000000/ms-edge-new.png" class="w-6 h-6">
+                <div id="dot-edge" class="absolute bottom-1 w-1 h-1 bg-gray-500 rounded-full hidden"></div>
+            </div>
+            <div class="taskbar-icon w-10 h-10 rounded flex items-center justify-center cursor-pointer relative"
+                onclick="openWindow('store')" title="Microsoft Store">
+                <img src="https://img.icons8.com/fluency/48/000000/microsoft-store.png" class="w-6 h-6">
+                <div id="dot-store" class="absolute bottom-1 w-1 h-1 bg-gray-500 rounded-full hidden"></div>
+            </div>
+        </div>
+
+        <!-- System Tray (Right) -->
+        <div class="flex items-center h-full w-1/4 justify-end pr-2 space-x-1">
+            <div class="hidden sm:flex hover:bg-white/50 p-1 rounded cursor-pointer transition">
+                <i class="fas fa-chevron-up text-xs text-gray-600"></i>
+            </div>
+            <div class="flex items-center hover:bg-white/50 p-1.5 rounded cursor-pointer transition space-x-2">
+                <i class="fas fa-wifi text-xs text-gray-700"></i>
+                <i class="fas fa-volume-up text-xs text-gray-700"></i>
+                <i class="fas fa-battery-three-quarters text-xs text-gray-700"></i>
+            </div>
+            <div class="flex flex-col items-end hover:bg-white/50 px-2 py-0.5 rounded cursor-pointer transition text-right"
+                title="Calendar">
+                <span id="clock-time" class="text-xs text-gray-800 font-medium">10:00 AM</span>
+                <span id="clock-date" class="text-[10px] text-gray-600">10/25/2023</span>
+            </div>
+            <div class="w-1 h-full border-l border-gray-300 ml-1"></div>
+        </div>
+    </footer>
+
+    <!-- Templates for Windows -->
+    <template id="window-template">
+        <div class="window absolute bg-gray-50 rounded-lg flex flex-col pointer-events-auto resize overflow-hidden w-[800px] h-[500px]"
+            style="top: 100px; left: 100px;">
+            <!-- Title Bar -->
+            <div
+                class="window-header h-8 flex justify-between items-center px-2 bg-white/50 backdrop-blur-sm select-none cursor-default">
+                <div class="flex items-center space-x-2 w-full h-full cursor-move">
+                    <img src="" class="window-icon w-4 h-4">
+                    <span class="window-title text-xs font-medium text-gray-700">Application</span>
+                </div>
+                <div class="flex items-center h-full">
+                    <div class="w-10 h-8 flex items-center justify-center hover:bg-gray-200 transition text-gray-600 cursor-pointer"
+                        onclick="minimizeWindow(this)"><i class="fas fa-minus text-[10px]"></i></div>
+                    <div class="w-10 h-8 flex items-center justify-center hover:bg-gray-200 transition text-gray-600 cursor-pointer"
+                        onclick="maximizeWindow(this)"><i class="far fa-square text-[10px]"></i></div>
+                    <div class="w-10 h-8 flex items-center justify-center hover:bg-red-500 hover:text-white transition text-gray-600 cursor-pointer rounded-tr-lg"
+                        onclick="closeWindow(this)"><i class="fas fa-times text-[12px]"></i></div>
+                </div>
+            </div>
+            <!-- Toolbar (Optional, per app) -->
+            <div
+                class="window-toolbar h-10 bg-gray-50 border-b border-gray-200 flex items-center px-3 space-x-3 hidden">
+                <div class="flex space-x-2 text-gray-400">
+                    <i class="fas fa-arrow-left cursor-pointer hover:text-gray-700"></i>
+                    <i class="fas fa-arrow-right cursor-pointer hover:text-gray-700"></i>
+                    <i class="fas fa-redo cursor-pointer hover:text-gray-700"></i>
+                </div>
+                <div
+                    class="flex-1 bg-white border border-gray-200 rounded-md h-7 flex items-center px-3 text-xs text-gray-600 shadow-sm">
+                    <i class="fas fa-lock text-green-600 mr-2 text-[10px]"></i>
+                    <span class="url-bar">https://www.bing.com</span>
+                </div>
+            </div>
+            <!-- Content -->
+            <div class="window-content flex-1 bg-white relative overflow-hidden flex flex-col">
+                <!-- Content injected here -->
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // --- Clock Logic ---
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: 'numeric', minute: '2-digit' };
+            const dateOptions = { month: 'numeric', day: 'numeric', year: 'numeric' };
+
+            document.getElementById('clock-time').textContent = now.toLocaleTimeString([], timeOptions);
+            document.getElementById('clock-date').textContent = now.toLocaleDateString([], dateOptions);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- Start Menu Logic ---
+        const startMenu = document.getElementById('start-menu');
+        let isStartOpen = false;
+
+        function toggleStartMenu() {
+            isStartOpen = !isStartOpen;
+            if (isStartOpen) {
+                startMenu.classList.remove('start-hidden');
+                startMenu.classList.add('start-visible');
+            } else {
+                startMenu.classList.remove('start-visible');
+                startMenu.classList.add('start-hidden');
+            }
+        }
+
+        // Close start menu when clicking desktop
+        document.getElementById('desktop').addEventListener('click', () => {
+            if (isStartOpen) toggleStartMenu();
+        });
+
+        // --- Desktop Icons ---
+        function selectIcon(e, el) {
+            e.stopPropagation();
+            deselectAll();
+            el.classList.add('selected');
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.desktop-icon').forEach(icon => icon.classList.remove('selected'));
+        }
+
+        // --- Window Management ---
+        const windowsContainer = document.getElementById('windows-container');
+        let zIndexCounter = 100;
+
+        const apps = {
+            'edge': {
+                title: 'Microsoft Edge',
+                icon: 'https://img.icons8.com/color/48/000000/ms-edge-new.png',
+                url: 'https://www.google.com/webhp?igu=1', // Google allows iframing usually
+                type: 'browser'
+            },
+            'explorer': {
+                title: 'File Explorer',
+                icon: 'https://img.icons8.com/color/48/000000/folder-invoices--v1.png',
+                type: 'explorer'
+            },
+            'word': {
+                title: 'Word',
+                icon: 'https://img.icons8.com/color/48/000000/word.png',
+                type: 'app',
+                content: '<div class="p-8 text-center"><h1 class="text-2xl font-bold text-blue-700">Word</h1><p>Document 1</p></div>'
+            },
+            'store': {
+                title: 'Microsoft Store',
+                icon: 'https://img.icons8.com/fluency/48/000000/microsoft-store.png',
+                type: 'app',
+                content: '<div class="p-4 grid grid-cols-3 gap-4"><div class="bg-gray-100 h-32 rounded"></div><div class="bg-gray-100 h-32 rounded"></div><div class="bg-gray-100 h-32 rounded"></div></div>'
+            }
+        };
+
+        function openWindow(appId) {
+            if (isStartOpen) toggleStartMenu();
+
+            // Check if already open (simple check)
+            const existing = document.getElementById(`window-${appId}`);
+            if (existing) {
+                bringToFront(existing);
+                return;
+            }
+
+            const app = apps[appId];
+            const template = document.getElementById('window-template');
+            const clone = template.content.cloneNode(true);
+            const win = clone.querySelector('.window');
+
+            win.id = `window-${appId}`;
+            win.style.zIndex = ++zIndexCounter;
+            win.querySelector('.window-title').textContent = app.title;
+            win.querySelector('.window-icon').src = app.icon;
+
+            // Content Logic
+            const contentArea = win.querySelector('.window-content');
+
+            if (app.type === 'browser') {
+                const toolbar = win.querySelector('.window-toolbar');
+                toolbar.classList.remove('hidden');
+
+                // Transform static URL bar into an input field
+                const urlContainer = toolbar.querySelector('.flex-1');
+                urlContainer.innerHTML = `
+                    <i class="fas fa-lock text-green-600 mr-2 text-[10px]"></i>
+                    <input type="text" class="w-full h-full bg-transparent border-none outline-none text-gray-600" value="${app.url}" placeholder="Enter URL...">
+                `;
+
+                // Create the iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = app.url;
+                iframe.className = "w-full h-full border-none bg-white";
+                // Adding sandbox permissions to ensure basic functionality while maintaining security
+                iframe.sandbox = "allow-same-origin allow-scripts allow-forms allow-popups";
+
+                contentArea.appendChild(iframe);
+
+                // Add functionality to the address bar
+                const input = urlContainer.querySelector('input');
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        let url = input.value.trim();
+                        // Basic protocol check
+                        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                            url = 'https://' + url;
+                        }
+                        iframe.src = url;
+                        input.value = url;
+                        input.blur(); // Remove focus after entering
+                    }
+                });
+
+            } else if (app.type === 'explorer') {
+                win.querySelector('.window-toolbar').classList.remove('hidden');
+                win.querySelector('.window-toolbar').innerHTML = `
+                    <div class="flex space-x-4 text-xs text-gray-600 px-2 py-1">
+                        <span class="font-bold border-b-2 border-blue-500 pb-1">New</span>
+                        <span>Cut</span>
+                        <span>Copy</span>
+                        <span>Paste</span>
+                        <span>Rename</span>
+                    </div>
+                 `;
+                contentArea.innerHTML = `
+                    <div class="flex h-full">
+                        <div class="w-40 bg-gray-50 border-r border-gray-200 p-2 text-xs text-gray-700 space-y-2">
+                             <div class="flex items-center hover:bg-gray-200 p-1 rounded"><i class="fas fa-star text-yellow-500 mr-2 w-4"></i> Quick access</div>
+                             <div class="flex items-center hover:bg-gray-200 p-1 rounded"><i class="fas fa-desktop text-blue-500 mr-2 w-4"></i> Desktop</div>
+                             <div class="flex items-center hover:bg-gray-200 p-1 rounded"><i class="fas fa-download text-green-500 mr-2 w-4"></i> Downloads</div>
+                             <div class="flex items-center hover:bg-gray-200 p-1 rounded"><i class="fas fa-file text-yellow-500 mr-2 w-4"></i> Documents</div>
+                             <div class="mt-4 font-bold text-gray-500 px-1">This PC</div>
+                             <div class="flex items-center bg-gray-200 p-1 rounded"><i class="fas fa-hdd text-gray-500 mr-2 w-4"></i> Local Disk (C:)</div>
+                        </div>
+                        <div class="flex-1 p-4 grid grid-cols-4 grid-rows-4 gap-4 content-start">
+                             <div class="flex flex-col items-center hover:bg-blue-50 p-2 rounded border border-transparent hover:border-blue-200">
+                                <img src="https://img.icons8.com/color/48/000000/folder-invoices--v1.png" class="w-10 h-10 mb-1">
+                                <span class="text-xs text-center">Windows</span>
+                             </div>
+                             <div class="flex flex-col items-center hover:bg-blue-50 p-2 rounded border border-transparent hover:border-blue-200">
+                                <img src="https://img.icons8.com/color/48/000000/folder-invoices--v1.png" class="w-10 h-10 mb-1">
+                                <span class="text-xs text-center">Program Files</span>
+                             </div>
+                             <div class="flex flex-col items-center hover:bg-blue-50 p-2 rounded border border-transparent hover:border-blue-200">
+                                <img src="https://img.icons8.com/color/48/000000/folder-invoices--v1.png" class="w-10 h-10 mb-1">
+                                <span class="text-xs text-center">Users</span>
+                             </div>
+                        </div>
+                    </div>
+                 `;
+            } else if (app.content) {
+                contentArea.innerHTML = app.content;
+            }
+
+            // Add Interaction
+            makeDraggable(win);
+            win.addEventListener('mousedown', () => bringToFront(win));
+
+            windowsContainer.appendChild(win);
+
+            // Show taskbar dot
+            const dot = document.getElementById(`dot-${appId}`);
+            if (dot) dot.classList.remove('hidden');
+        }
+
+        function closeWindow(btn) {
+            const win = btn.closest('.window');
+            const id = win.id.replace('window-', '');
+            win.style.opacity = '0';
+            win.style.transform = 'scale(0.9)';
+            setTimeout(() => win.remove(), 200);
+            // Hide taskbar dot
+            const dot = document.getElementById(`dot-${id}`);
+            if (dot) dot.classList.add('hidden');
+        }
+
+        function maximizeWindow(btn) {
+            const win = btn.closest('.window');
+            if (win.classList.contains('w-full')) {
+                // Restore
+                win.style.width = '800px';
+                win.style.height = '500px';
+                win.style.top = '100px';
+                win.style.left = '100px';
+                win.classList.remove('w-full', 'h-full', 'top-0', 'left-0', 'rounded-none');
+                win.classList.add('rounded-lg');
+            } else {
+                // Maximize
+                win.style.top = '0';
+                win.style.left = '0';
+                win.style.width = '100%';
+                win.style.height = 'calc(100% - 48px)'; // Exclude taskbar
+                win.classList.add('w-full', 'rounded-none');
+                win.classList.remove('rounded-lg');
+            }
+        }
+
+        function minimizeWindow(btn) {
+            const win = btn.closest('.window');
+            win.style.transform = 'translateY(100vh) scale(0.5)';
+            win.style.opacity = '0';
+            // In a real app, this would stay in DOM but hidden.
+            // Here we just visually hide it. Clicking taskbar icon would restore.
+        }
+
+        function bringToFront(win) {
+            win.style.zIndex = ++zIndexCounter;
+        }
+
+        // --- Drag Logic ---
+        function makeDraggable(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const header = element.querySelector('.window-header');
+
+            header.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                if (element.classList.contains('w-full')) return; // Don't drag if maximized
+
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+    </script>
+</body>
+
+</html>
