@@ -1,0 +1,45 @@
+{
+    "name": "my-dummy-project",
+    "version": "1.0.0",
+    "description": "A template package.json for a new project.",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "test": "jest",
+        "lint": "eslint . --ext .js,.jsx",
+        "format": "prettier --write .",
+        "build": "babel src -d dist"
+    },
+    "keywords": [
+        "node",
+        "express",
+        "template",
+        "dummy"
+    ],
+    "author": "Your Name <youremail@example.com>",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.18.2",
+        "dotenv": "^16.3.1",
+        "lodash": "^4.17.21"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1",
+        "jest": "^29.7.0",
+        "eslint": "^8.52.0",
+        "prettier": "^3.0.3",
+        "@babel/cli": "^7.23.0",
+        "@babel/core": "^7.23.3",
+        "@babel/preset-env": "^7.23.3"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/yourusername/my-dummy-project.git"
+    },
+    "bugs": {
+        "url": "https://github.com/yourusername/my-dummy-project/issues"
+    },
+    "homepage": "https://github.com/yourusername/my-dummy-project#readme"
+}
