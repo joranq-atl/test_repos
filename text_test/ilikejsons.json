@@ -1,0 +1,25 @@
+{
+    "entity_type": "The Silly Goose",
+    "is_wearing_hat": true,
+    "favorite_activity": "Arguing with traffic cones",
+    "current_mood": "Bouncing off the walls (metaphorically)",
+    "inventory": [
+        "One slightly used rubber chicken",
+        "A sock named 'Brenda'",
+        "Three pieces of lint (very important lint)",
+        "An instruction manual for a time machine (missing page 4)"
+    ],
+    "coordinates": {
+        "dimension": "The Fluffy Dimension of Perpetual Taps",
+        "x": 42.0,
+        "y": -17.5,
+        "z": 999.99
+    },
+    "sound_effects": [
+        "Wobble",
+        "Boing",
+        "Sproing",
+        "Tinkle (like a small, happy bell)"
+    ],
+    "secret_number": null
+}
